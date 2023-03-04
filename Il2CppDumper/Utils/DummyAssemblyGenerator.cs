@@ -311,8 +311,8 @@ namespace Il2CppDumper
                                     var slot = new CustomAttributeNamedArgument("Slot", new CustomAttributeArgument(stringType, methodDef.slot.ToString()));
                                     customAttribute.Fields.Add(slot);
                                 }
-                                var returnTypeAttribute = new CustomAttributeNamedArgument("ReturnType", new CustomAttributeArgument(stringType, returnType.FullName));
-                                customAttribute.Fields.Add(returnTypeAttribute);
+                                var returnNameAttribute = new CustomAttributeNamedArgument("ReturnTypeName", new CustomAttributeArgument(stringType, returnType.FullName));
+                                customAttribute.Fields.Add(returnNameAttribute);
                                 var methodNameAttribute = new CustomAttributeNamedArgument("MethodName", new CustomAttributeArgument(stringType, methodName));
                                 customAttribute.Fields.Add(methodNameAttribute);
                                 methodDefinition.CustomAttributes.Add(customAttribute);
