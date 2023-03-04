@@ -9,6 +9,7 @@
     <Copyright>Copyright © Perfare 2016-2023</Copyright>
     <DebugType>embedded</DebugType>
 	<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+	<PublishSingleFile>true</PublishSingleFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -43,6 +44,9 @@
     <None Update="il2cpp_header_to_ghidra.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+	<None Update="il2cpp.bat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	</None>
   </ItemGroup>
 
 </Project>
