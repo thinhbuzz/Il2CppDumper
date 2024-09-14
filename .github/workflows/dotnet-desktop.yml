@@ -1,0 +1,74 @@
+name: .NET Desktop
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        dotnet-version: ['net6.0', 'net8.0']
+        build-type: ['default', 'self-contained']
+    runs-on: windows-latest
+
+    env:
+      Solution_Name: Il2CppDumper.sln
+      Project_Path: Il2CppDumper/Il2CppDumper.csproj
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ matrix.dotnet-version == 'net6.0' && '6.0.x' || '8.0.x' }}
+
+    - name: Restore dependencies
+      run: dotnet restore ${{ env.Solution_Name }}
+
+    - name: Build .NET
+      run: |
+        if ('${{ matrix.build-type }}' -eq 'self-contained') {
+          dotnet publish ${{ env.Project_Path }} -c Release -f ${{ matrix.dotnet-version }} -r win-x64 --self-contained true -o ./publish/${{ matrix.dotnet-version }}-contained /p:PublishSingleFile=true /p:DebugType=None /p:DebugSymbols=false
+        } else {
+          dotnet publish ${{ env.Project_Path }} -c Release -f ${{ matrix.dotnet-version }} --no-self-contained -o ./publish/${{ matrix.dotnet-version }} /p:PublishSingleFile=true /p:DebugType=None /p:DebugSymbols=false
+        }
+
+    - name: Get version
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Create ZIP archive
+      run: |
+        if ('${{ matrix.build-type }}' -eq 'self-contained') {
+          Compress-Archive -Path ./publish/${{ matrix.dotnet-version }}-contained/* -DestinationPath ./Il2CppDumper-${{ matrix.dotnet-version }}-contained-v${{ env.VERSION }}.zip
+        } else {
+          Compress-Archive -Path ./publish/${{ matrix.dotnet-version }}/* -DestinationPath ./Il2CppDumper-${{ matrix.dotnet-version }}-v${{ env.VERSION }}.zip
+        }
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Il2CppDumper-${{ matrix.dotnet-version }}${{ matrix.build-type == 'self-contained' && '-contained' || '' }}-v${{ env.VERSION }}.zip
+        path: ./Il2CppDumper-${{ matrix.dotnet-version }}${{ matrix.build-type == 'self-contained' && '-contained' || '' }}-v${{ env.VERSION }}.zip
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+
+    - name: Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: ./**/*.zip
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
